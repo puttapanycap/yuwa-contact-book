@@ -23,17 +23,72 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit();
 }
 
-// Handle delete request
-if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
+// Handle AJAX requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    header('Content-Type: application/json');
+    
     try {
-        $stmt = $pdo->prepare("DELETE FROM employees WHERE id = ?");
-        $stmt->execute([$_GET['delete']]);
-        $message = 'ลบข้อมูลเรียบร้อยแล้ว';
-        $messageType = 'success';
+        switch ($_POST['action']) {
+            case 'add':
+                $stmt = $pdo->prepare("
+                    INSERT INTO employees (department, internal_phone, building, floor, room_number) 
+                    VALUES (?, ?, ?, ?, ?)
+                ");
+                
+                $stmt->execute([
+                    $_POST['department'],
+                    $_POST['internal_phone'],
+                    $_POST['building'],
+                    $_POST['floor'],
+                    $_POST['room_number']
+                ]);
+                
+                echo json_encode(['success' => true, 'message' => 'เพิ่มข้อมูลเรียบร้อยแล้ว']);
+                break;
+                
+            case 'edit':
+                $stmt = $pdo->prepare("
+                    UPDATE employees SET 
+                    department = ?, internal_phone = ?, 
+                    building = ?, floor = ?, room_number = ?, updated_at = NOW()
+                    WHERE id = ?
+                ");
+                
+                $stmt->execute([
+                    $_POST['department'],
+                    $_POST['internal_phone'],
+                    $_POST['building'],
+                    $_POST['floor'],
+                    $_POST['room_number'],
+                    $_POST['id']
+                ]);
+                
+                echo json_encode(['success' => true, 'message' => 'แก้ไขข้อมูลเรียบร้อยแล้ว']);
+                break;
+                
+            case 'delete':
+                $stmt = $pdo->prepare("DELETE FROM employees WHERE id = ?");
+                $stmt->execute([$_POST['id']]);
+                
+                echo json_encode(['success' => true, 'message' => 'ลบข้อมูลเรียบร้อยแล้ว']);
+                break;
+                
+            case 'get':
+                $stmt = $pdo->prepare("SELECT * FROM employees WHERE id = ?");
+                $stmt->execute([$_POST['id']]);
+                $employee = $stmt->fetch();
+                
+                if ($employee) {
+                    echo json_encode(['success' => true, 'data' => $employee]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'ไม่พบข้อมูลพนักงาน']);
+                }
+                break;
+        }
     } catch (PDOException $e) {
-        $message = 'เกิดข้อผิดพลาด: ' . $e->getMessage();
-        $messageType = 'danger';
+        echo json_encode(['success' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
     }
+    exit();
 }
 
 // Get total employees count
@@ -63,6 +118,9 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
@@ -89,10 +147,10 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         </a></li>
                     </ul>
                 </div>
-                <a class="nav-link" href="add.php">
+                <button type="button" class="btn btn-success nav-link" id="addEmployeeBtn">
                     <i class="fas fa-plus me-1"></i>
                     เพิ่มพนักงาน
-                </a>
+                </button>
                 <a class="nav-link" href="../index.php">
                     <i class="fas fa-home me-1"></i>
                     กลับหน้าแรก
@@ -101,51 +159,44 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
         </div>
     </nav>
 
-    <!-- Filter Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6 class="card-title mb-3">
-                        <i class="fas fa-filter me-2"></i>
-                        กรองข้อมูล
-                    </h6>
-                    
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">ตึก</label>
-                            <select class="form-select select2-admin-filter" id="adminBuildingFilter" data-placeholder="เลือกตึก...">
-                                <option value="">ทั้งหมด</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">หน่วยงาน</label>
-                            <select class="form-select select2-admin-filter" id="adminDepartmentFilter" data-placeholder="เลือกหน่วยงาน...">
-                                <option value="">ทั้งหมด</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">การดำเนินการ</label>
-                            <div class="d-grid">
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearAdminFilters">
-                                    <i class="fas fa-times me-1"></i>
-                                    ล้างตัวกรอง
-                                </button>
+    <div class="container-fluid mt-4">
+        <!-- Filter Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">
+                            <i class="fas fa-filter me-2"></i>
+                            กรองข้อมูล
+                        </h6>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">ตึก</label>
+                                <select class="form-select select2-admin-filter" id="adminBuildingFilter" data-placeholder="เลือกตึก...">
+                                    <option value="">ทั้งหมด</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">หน่วยงาน</label>
+                                <select class="form-select select2-admin-filter" id="adminDepartmentFilter" data-placeholder="เลือกหน่วยงาน...">
+                                    <option value="">ทั้งหมด</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">การดำเนินการ</label>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearAdminFilters">
+                                        <i class="fas fa-times me-1"></i>
+                                        ล้างตัวกรอง
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="container-fluid mt-4">
-        <?php if (isset($message)): ?>
-            <div class="alert alert-<?= $messageType ?> alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
 
         <div class="card shadow">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -163,11 +214,8 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                     <table id="employeesTable" class="table table-striped table-hover" style="width:100%">
                         <thead>
                             <tr>
-                                <th>ชื่อ-นามสกุล</th>
-                                <th>ตำแหน่ง</th>
                                 <th>หน่วยงาน</th>
                                 <th>เบอร์โทรภายใน</th>
-                                <th>อีเมล</th>
                                 <th>ที่ตั้ง</th>
                                 <th>จัดการ</th>
                             </tr>
@@ -181,21 +229,60 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
+    <!-- Employee Modal -->
+    <div class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">ยืนยันการลบข้อมูล</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="employeeModalLabel">
+                        <i class="fas fa-user-plus me-2"></i>
+                        เพิ่มพนักงานใหม่
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>คุณต้องการลบข้อมูลของ <strong id="employeeName"></strong> หรือไม่?</p>
-                    <p class="text-danger"><small>การดำเนินการนี้ไม่สามารถยกเลิกได้</small></p>
+                    <form id="employeeForm">
+                        <input type="hidden" id="employeeId" name="id">
+                        
+                        <div class="mb-3">
+                            <label for="employeeDepartment" class="form-label">หน่วยงาน <span class="text-danger">*</span></label>
+                            <select class="form-select select2-modal" id="employeeDepartment" name="department" required data-placeholder="เลือกหรือพิมพ์หน่วยงาน...">
+                                <option value=""></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="employeePhone" class="form-label">เบอร์โทรภายใน <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="employeePhone" name="internal_phone" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="employeeBuilding" class="form-label">ตึก <span class="text-danger">*</span></label>
+                                <select class="form-select select2-modal" id="employeeBuilding" name="building" required data-placeholder="เลือกหรือพิมพ์ชื่อตึก...">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="employeeFloor" class="form-label">ชั้น <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="employeeFloor" name="floor" required min="1" max="50">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="employeeRoom" class="form-label">หมายเลขห้อง</label>
+                                <input type="text" class="form-control" id="employeeRoom" name="room_number">
+                            </div>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger">ลบข้อมูล</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        ยกเลิก
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveEmployeeBtn">
+                        <i class="fas fa-save me-1"></i>
+                        บันทึก
+                    </button>
                 </div>
             </div>
         </div>
@@ -223,10 +310,17 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script>
         $(document).ready(function() {
+            let table;
+            let isEditMode = false;
+            
             // Load filter options
             loadFilterOptions();
+            loadSelectOptions();
             
             // Initialize Select2 for admin filters
             $('.select2-admin-filter').select2({
@@ -239,7 +333,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             });
 
             // Initialize DataTable
-            const table = $('#employeesTable').DataTable({
+            table = $('#employeesTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
@@ -252,41 +346,18 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                 },
                 columns: [
                     {
-                        data: 'name',
-                        render: function(data, type, row) {
-                            let html = `<strong>${data}</strong>`;
-                            if (row.email) {
-                                html += `<br><small class="text-muted">${row.email}</small>`;
-                            }
-                            return html;
-                        }
-                    },
-                    { data: 'position' },
-                    {
                         data: 'department',
                         render: function(data, type, row) {
-                            return `<span class="badge bg-light text-dark">${data}</span>`;
+                            return `<span class="badge bg-primary text-white fs-6">${data}</span>`;
                         }
                     },
                     {
                         data: 'internal_phone',
                         render: function(data, type, row) {
-                            return `<a href="tel:${data}" class="text-decoration-none">
-                                        <i class="fas fa-phone me-1"></i>
+                            return `<a href="tel:${data}" class="text-decoration-none fs-5 fw-bold">
+                                        <i class="fas fa-phone me-2 text-success"></i>
                                         ${data}
                                     </a>`;
-                        }
-                    },
-                    {
-                        data: 'email',
-                        render: function(data, type, row) {
-                            if (data) {
-                                return `<a href="mailto:${data}" class="text-decoration-none">
-                                            <i class="fas fa-envelope me-1"></i>
-                                            ${data}
-                                        </a>`;
-                            }
-                            return '<span class="text-muted">-</span>';
                         }
                     },
                     {
@@ -296,10 +367,10 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                             if (row.room_number) {
                                 location += ` ห้อง ${row.room_number}`;
                             }
-                            return `<small class="text-muted">
-                                        <i class="fas fa-map-marker-alt me-1"></i>
+                            return `<div class="text-muted">
+                                        <i class="fas fa-map-marker-alt me-2"></i>
                                         ${location}
-                                    </small>`;
+                                    </div>`;
                         },
                         orderable: false
                     },
@@ -307,11 +378,10 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         data: null,
                         render: function(data, type, row) {
                             return `<div class="btn-group btn-group-sm" role="group">
-                                        <a href="edit.php?id=${row.id}" class="btn btn-outline-primary" title="แก้ไข">
+                                        <button type="button" class="btn btn-outline-primary edit-btn" data-id="${row.id}" title="แก้ไข">
                                             <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-outline-danger" title="ลบ" 
-                                                onclick="confirmDelete(${row.id}, '${row.name}')">
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger delete-btn" data-id="${row.id}" data-name="${row.department}" title="ลบ">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>`;
@@ -377,6 +447,146 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                 table.ajax.reload();
             });
 
+            // Add employee button
+            $('#addEmployeeBtn').on('click', function() {
+                isEditMode = false;
+                $('#employeeModalLabel').html('<i class="fas fa-user-plus me-2"></i>เพิ่มพนักงานใหม่');
+                $('#saveEmployeeBtn').html('<i class="fas fa-save me-1"></i>บันทึก');
+                $('#employeeForm')[0].reset();
+                $('#employeeId').val('');
+                $('.select2-modal').val(null).trigger('change');
+                $('#employeeModal').modal('show');
+            });
+
+            // Edit employee button
+            $(document).on('click', '.edit-btn', function() {
+                const id = $(this).data('id');
+                isEditMode = true;
+                $('#employeeModalLabel').html('<i class="fas fa-user-edit me-2"></i>แก้ไขข้อมูลพนักงาน');
+                $('#saveEmployeeBtn').html('<i class="fas fa-save me-1"></i>บันทึกการแก้ไข');
+                
+                // Get employee data
+                $.post('manage.php', {
+                    action: 'get',
+                    id: id
+                }, function(response) {
+                    if (response.success) {
+                        const data = response.data;
+                        $('#employeeId').val(data.id);
+                        $('#employeePhone').val(data.internal_phone);
+                        $('#employeeFloor').val(data.floor);
+                        $('#employeeRoom').val(data.room_number);
+                        
+                        // Set Select2 values
+                        setSelect2Value('#employeeDepartment', data.department);
+                        setSelect2Value('#employeeBuilding', data.building);
+                        
+                        $('#employeeModal').modal('show');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'เกิดข้อผิดพลาด',
+                            text: response.message
+                        });
+                    }
+                }, 'json');
+            });
+
+            // Delete employee button
+            $(document).on('click', '.delete-btn', function() {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                
+                Swal.fire({
+                    title: 'ยืนยันการลบข้อมูล',
+                    text: `คุณต้องการลบข้อมูลของ "${name}" หรือไม่?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'ลบข้อมูล',
+                    cancelButtonText: 'ยกเลิก',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post('manage.php', {
+                            action: 'delete',
+                            id: id
+                        }, function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'สำเร็จ',
+                                    text: response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                table.ajax.reload();
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'เกิดข้อผิดพลาด',
+                                    text: response.message
+                                });
+                            }
+                        }, 'json');
+                    }
+                });
+            });
+
+            // Save employee button
+            $('#saveEmployeeBtn').on('click', function() {
+                if (validateForm()) {
+                    const formData = $('#employeeForm').serialize();
+                    const action = isEditMode ? 'edit' : 'add';
+                    
+                    $.post('manage.php', formData + '&action=' + action, function(response) {
+                        if (response.success) {
+                            $('#employeeModal').modal('hide');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'สำเร็จ',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            table.ajax.reload();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'เกิดข้อผิดพลาด',
+                                text: response.message
+                            });
+                        }
+                    }, 'json');
+                }
+            });
+
+            // Initialize Select2 for modal
+            $('#employeeModal').on('shown.bs.modal', function() {
+                $('.select2-modal').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    tags: true,
+                    tokenSeparators: [','],
+                    dropdownParent: $('#employeeModal'),
+                    placeholder: function() {
+                        return $(this).data('placeholder');
+                    },
+                    createTag: function (params) {
+                        var term = $.trim(params.term);
+                        if (term === '') {
+                            return null;
+                        }
+                        return {
+                            id: term,
+                            text: term,
+                            newTag: true
+                        };
+                    }
+                });
+            });
+
             // Load filter options function
             function loadFilterOptions() {
                 // Load buildings
@@ -399,13 +609,83 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                     }
                 });
             }
-        });
 
-        function confirmDelete(id, name) {
-            $('#employeeName').text(name);
-            $('#confirmDeleteBtn').attr('href', '?delete=' + id);
-            $('#deleteModal').modal('show');
-        }
+            // Load select options for modal
+            function loadSelectOptions() {
+                // Load positions
+                $.get('../api/filter-options.php?type=positions', function(data) {
+                    if (data.success) {
+                        data.data.forEach(function(item) {
+                            $('#employeePosition').append(`<option value="${item.position}">${item.position}</option>`);
+                        });
+                    }
+                });
+
+                // Load departments
+                $.get('../api/filter-options.php?type=departments', function(data) {
+                    if (data.success) {
+                        data.data.forEach(function(item) {
+                            $('#employeeDepartment').append(`<option value="${item.department}">${item.department}</option>`);
+                        });
+                    }
+                });
+
+                // Load buildings
+                $.get('../api/filter-options.php?type=buildings', function(data) {
+                    if (data.success) {
+                        data.data.forEach(function(item) {
+                            $('#employeeBuilding').append(`<option value="${item.building}">${item.building}</option>`);
+                        });
+                    }
+                });
+            }
+
+            // Set Select2 value
+            function setSelect2Value(selector, value) {
+                if (value) {
+                    const option = new Option(value, value, true, true);
+                    $(selector).append(option).trigger('change');
+                }
+            }
+
+            // Form validation
+            function validateForm() {
+                let isValid = true;
+                
+                // Remove previous validation classes
+                $('.form-control, .form-select').removeClass('is-invalid');
+                
+                // Check required fields
+                $('#employeeForm [required]').each(function() {
+                    if (!$(this).val().trim()) {
+                        $(this).addClass('is-invalid');
+                        isValid = false;
+                    }
+                });
+
+                // Validate phone number
+                const phone = $('#employeePhone').val();
+                if (phone && !/^\d+$/.test(phone)) {
+                    $('#employeePhone').addClass('is-invalid');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ข้อมูลไม่ครบถ้วน',
+                        text: 'กรุณากรอกข้อมูลให้ถูกต้องและครบถ้วน'
+                    });
+                }
+
+                return isValid;
+            }
+
+            // Remove invalid class on input
+            $(document).on('input change', '.form-control, .form-select', function() {
+                $(this).removeClass('is-invalid');
+            });
+        });
     </script>
 </body>
 </html>

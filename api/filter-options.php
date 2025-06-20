@@ -1,31 +1,27 @@
 <?php
-header('Content-Type: application/json');
 require_once '../config/database.php';
 
-$type = $_GET['type'] ?? '';
+header('Content-Type: application/json');
 
 try {
+    $type = $_GET['type'] ?? '';
+    
     switch ($type) {
         case 'buildings':
-            $stmt = $pdo->query("SELECT DISTINCT building FROM employees ORDER BY building");
-            $data = $stmt->fetchAll();
+            $stmt = $pdo->query("SELECT DISTINCT building FROM employees WHERE building IS NOT NULL AND building != '' ORDER BY building");
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             break;
-            
-        case 'floors':
-            $stmt = $pdo->query("SELECT DISTINCT floor FROM employees ORDER BY floor");
-            $data = $stmt->fetchAll();
-            break;
-            
+        
         case 'departments':
-            $stmt = $pdo->query("SELECT DISTINCT department FROM employees ORDER BY department");
-            $data = $stmt->fetchAll();
+            $stmt = $pdo->query("SELECT DISTINCT department FROM employees WHERE department IS NOT NULL AND department != '' ORDER BY department");
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             break;
-            
-        case 'positions':
-            $stmt = $pdo->query("SELECT DISTINCT position FROM employees ORDER BY position");
-            $data = $stmt->fetchAll();
+        
+        case 'floors':
+            $stmt = $pdo->query("SELECT DISTINCT floor FROM employees WHERE floor IS NOT NULL ORDER BY floor");
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             break;
-            
+        
         default:
             throw new Exception('Invalid type parameter');
     }
@@ -38,7 +34,7 @@ try {
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'message' => $e->getMessage()
     ]);
 }
 ?>
