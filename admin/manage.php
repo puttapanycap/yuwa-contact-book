@@ -510,6 +510,8 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         $('#employeeFloor').val(data.floor);
                         $('#employeeRoom').val(data.room_name);
 
+                        loadSelectOptions();
+
                         // Set Select2 values
                         setSelect2Value('#employeeDepartment', data.department);
                         setSelect2Value('#employeeBuilding', data.building);
