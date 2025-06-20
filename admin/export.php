@@ -23,16 +23,16 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit();
 }
 
-$format = $_GET['format'] ?? 'csv';
+$format = $_GET['format'] ?? '';
 
 // Get all employees
-$stmt = $pdo->query("SELECT * FROM employees ORDER BY name");
+$stmt = $pdo->query("SELECT * FROM employees ORDER BY department, internal_phone");
 $employees = $stmt->fetchAll();
 
 if ($format === 'csv') {
     // CSV Export
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="employees_' . date('Y-m-d') . '.csv"');
+    header('Content-Disposition: attachment; filename="phonebook_' . date('Y-m-d') . '.csv"');
     
     $output = fopen('php://output', 'w');
     
@@ -41,11 +41,8 @@ if ($format === 'csv') {
     
     // CSV Headers
     fputcsv($output, [
-        'ชื่อ-นามสกุล',
-        'ตำแหน่ง',
         'หน่วยงาน',
         'เบอร์โทรภายใน',
-        'อีเมล',
         'ตึก',
         'ชั้น',
         'หมายเลขห้อง',
@@ -55,11 +52,8 @@ if ($format === 'csv') {
     // CSV Data
     foreach ($employees as $employee) {
         fputcsv($output, [
-            $employee['name'],
-            $employee['position'],
             $employee['department'],
             $employee['internal_phone'],
-            $employee['email'],
             $employee['building'],
             $employee['floor'],
             $employee['room_number'],
@@ -93,6 +87,21 @@ if ($format === 'csv') {
     
     <!-- Custom CSS -->
     <link href="../assets/css/style.css" rel="stylesheet">
+    
+    <style>
+        .export-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .export-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .export-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -124,30 +133,96 @@ if ($format === 'csv') {
 
     <div class="container mt-4">
         <div class="row justify-content-center">
-            <div class="col-lg-6">
+            <div class="col-lg-8">
                 <div class="card shadow">
                     <div class="card-header bg-info text-white">
                         <h4 class="card-title mb-0">
                             <i class="fas fa-download me-2"></i>
-                            ส่งออกข้อมูล
+                            ส่งออกข้อมูลสมุดโทรศัพท์
                         </h4>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted">เลือกรูปแบบไฟล์ที่ต้องการส่งออก</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>ข้อมูลที่จะส่งออก:</strong> <?= count($employees) ?> รายการ
+                            <br>
+                            <small>ข้อมูลจะรวม: หน่วยงาน, เบอร์โทรภายใน, ที่ตั้ง, วันที่สร้าง</small>
+                        </div>
                         
-                        <div class="d-grid gap-3">
-                            <a href="export.php?format=csv" class="btn btn-success btn-lg">
-                                <i class="fas fa-file-csv fa-2x mb-2"></i>
-                                <br>
-                                ส่งออกเป็น CSV
-                                <small class="d-block">เหมาะสำหรับ Excel</small>
-                            </a>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card export-card border-success h-100" onclick="exportData('csv')">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-csv export-icon text-success"></i>
+                                        <h5 class="card-title">ส่งออกเป็น CSV</h5>
+                                        <p class="card-text text-muted">
+                                            เหมาะสำหรับ Microsoft Excel<br>
+                                            และโปรแกรมสเปรดชีต
+                                        </p>
+                                        <div class="mt-3">
+                                            <span class="badge bg-success">แนะนำ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             
-                            <div class="text-center">
-                                <small class="text-muted">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    ข้อมูลจะถูกส่งออกทั้งหมด <?= count($employees) ?> รายการ
-                                </small>
+                            <div class="col-md-6">
+                                <div class="card export-card border-primary h-100" onclick="printData()">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-print export-icon text-primary"></i>
+                                        <h5 class="card-title">พิมพ์รายการ</h5>
+                                        <p class="card-text text-muted">
+                                            พิมพ์รายการโทรศัพท์<br>
+                                            สำหรับติดบอร์ด
+                                        </p>
+                                        <div class="mt-3">
+                                            <span class="badge bg-primary">สะดวก</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-eye me-2"></i>
+                                    ตัวอย่างข้อมูล
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>หน่วยงาน</th>
+                                                <th>เบอร์โทรภายใน</th>
+                                                <th>ที่ตั้ง</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach (array_slice($employees, 0, 5) as $employee): ?>
+                                                <tr>
+                                                    <td><?= htmlspecialchars($employee['department']) ?></td>
+                                                    <td><?= htmlspecialchars($employee['internal_phone']) ?></td>
+                                                    <td>
+                                                        <?= htmlspecialchars($employee['building']) ?> ชั้น <?= $employee['floor'] ?>
+                                                        <?php if ($employee['room_number']): ?>
+                                                            ห้อง <?= htmlspecialchars($employee['room_number']) ?>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                            <?php if (count($employees) > 5): ?>
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted">
+                                                        ... และอีก <?= count($employees) - 5 ?> รายการ
+                                                    </td>
+                                                </tr>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -156,7 +231,105 @@ if ($format === 'csv') {
         </div>
     </div>
 
+    <!-- Print Modal -->
+    <div class="modal fade" id="printModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-print me-2"></i>
+                        รายการโทรศัพท์ภายในองค์กร
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="printContent">
+                    <div class="text-center mb-4">
+                        <h4>สมุดโทรศัพท์ภายในองค์กร</h4>
+                        <p class="text-muted">อัปเดตล่าสุด: <?= date('d/m/Y H:i') ?></p>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>หน่วยงาน</th>
+                                    <th>เบอร์โทรภายใน</th>
+                                    <th>ที่ตั้ง</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($employees as $employee): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($employee['department']) ?></td>
+                                        <td><strong><?= htmlspecialchars($employee['internal_phone']) ?></strong></td>
+                                        <td>
+                                            <?= htmlspecialchars($employee['building']) ?> ชั้น <?= $employee['floor'] ?>
+                                            <?php if ($employee['room_number']): ?>
+                                                ห้อง <?= htmlspecialchars($employee['room_number']) ?>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                    <button type="button" class="btn btn-primary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>
+                        พิมพ์
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function exportData(format) {
+            if (format === 'csv') {
+                window.location.href = 'export.php?format=csv';
+            }
+        }
+
+        function printData() {
+            const printModal = new bootstrap.Modal(document.getElementById('printModal'));
+            printModal.show();
+        }
+
+        // Add hover effects
+        document.querySelectorAll('.export-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.borderWidth = '2px';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.borderWidth = '1px';
+            });
+        });
+    </script>
+
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printContent, #printContent * {
+                visibility: visible;
+            }
+            #printContent {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .modal-header, .modal-footer {
+                display: none !important;
+            }
+        }
+    </style>
 </body>
 </html>
