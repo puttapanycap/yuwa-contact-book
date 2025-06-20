@@ -26,58 +26,58 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json');
-    
+
     try {
         switch ($_POST['action']) {
             case 'add':
                 $stmt = $pdo->prepare("
-                    INSERT INTO employees (department, internal_phone, building, floor, room_number) 
+                    INSERT INTO employees (department, internal_phone, building, floor, room_name) 
                     VALUES (?, ?, ?, ?, ?)
                 ");
-                
+
                 $stmt->execute([
                     $_POST['department'],
                     $_POST['internal_phone'],
                     $_POST['building'],
                     $_POST['floor'],
-                    $_POST['room_number']
+                    $_POST['room_name']
                 ]);
-                
+
                 echo json_encode(['success' => true, 'message' => 'เพิ่มข้อมูลเรียบร้อยแล้ว']);
                 break;
-                
+
             case 'edit':
                 $stmt = $pdo->prepare("
                     UPDATE employees SET 
                     department = ?, internal_phone = ?, 
-                    building = ?, floor = ?, room_number = ?, updated_at = NOW()
+                    building = ?, floor = ?, room_name = ?, updated_at = NOW()
                     WHERE id = ?
                 ");
-                
+
                 $stmt->execute([
                     $_POST['department'],
                     $_POST['internal_phone'],
                     $_POST['building'],
                     $_POST['floor'],
-                    $_POST['room_number'],
+                    $_POST['room_name'],
                     $_POST['id']
                 ]);
-                
+
                 echo json_encode(['success' => true, 'message' => 'แก้ไขข้อมูลเรียบร้อยแล้ว']);
                 break;
-                
+
             case 'delete':
                 $stmt = $pdo->prepare("DELETE FROM employees WHERE id = ?");
                 $stmt->execute([$_POST['id']]);
-                
+
                 echo json_encode(['success' => true, 'message' => 'ลบข้อมูลเรียบร้อยแล้ว']);
                 break;
-                
+
             case 'get':
                 $stmt = $pdo->prepare("SELECT * FROM employees WHERE id = ?");
                 $stmt->execute([$_POST['id']]);
                 $employee = $stmt->fetch();
-                
+
                 if ($employee) {
                     echo json_encode(['success' => true, 'data' => $employee]);
                 } else {
@@ -96,19 +96,20 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>จัดการข้อมูลพนักงาน - สมุดโทรศัพท์ภายในองค์กร</title>
-    
+
     <!-- Google Fonts - Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
@@ -117,16 +118,17 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-    
+
     <!-- SweetAlert2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <link href="../assets/css/style.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -143,13 +145,13 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item text-danger" href="logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                        </a></li>
+                                <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                            </a></li>
                     </ul>
                 </div>
                 <button type="button" class="btn btn-success nav-link" id="addEmployeeBtn">
                     <i class="fas fa-plus me-1"></i>
-                    เพิ่มพนักงาน
+                    เพิ่มห้อง/จุดบริการ
                 </button>
                 <a class="nav-link" href="../index.php">
                     <i class="fas fa-home me-1"></i>
@@ -169,21 +171,31 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                             <i class="fas fa-filter me-2"></i>
                             กรองข้อมูล
                         </h6>
-                        
+
                         <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">ตึก</label>
-                                <select class="form-select select2-admin-filter" id="adminBuildingFilter" data-placeholder="เลือกตึก...">
-                                    <option value="">ทั้งหมด</option>
-                                </select>
+                            <div class="col-md-3">
+                                <label class="form-label">ชื่อห้อง/จุดบริการ</label>
+                                <input type="text" class="form-control form-input-filter" id="adminRoomNameFilter" placeholder="กรอกชื่อห้อง/จุดบริการ..." />
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label">หน่วยงาน</label>
                                 <select class="form-select select2-admin-filter" id="adminDepartmentFilter" data-placeholder="เลือกหน่วยงาน...">
                                     <option value="">ทั้งหมด</option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label class="form-label">ตึก</label>
+                                <select class="form-select select2-admin-filter" id="adminBuildingFilter" data-placeholder="เลือกตึก...">
+                                    <option value="">ทั้งหมด</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">ชั้น</label>
+                                <select class="form-select select2-admin-filter" id="adminFloorFilter" data-placeholder="เลือกชั้น...">
+                                    <option value="">ทั้งหมด</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
                                 <label class="form-label">การดำเนินการ</label>
                                 <div class="d-grid">
                                     <button type="button" class="btn btn-outline-secondary btn-sm" id="clearAdminFilters">
@@ -214,6 +226,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                     <table id="employeesTable" class="table table-striped table-hover" style="width:100%">
                         <thead>
                             <tr>
+                                <th>ชื่อห้อง/จุดบริการ</th>
                                 <th>หน่วยงาน</th>
                                 <th>เบอร์โทรภายใน</th>
                                 <th>ที่ตั้ง</th>
@@ -236,19 +249,17 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                 <div class="modal-header">
                     <h5 class="modal-title" id="employeeModalLabel">
                         <i class="fas fa-user-plus me-2"></i>
-                        เพิ่มพนักงานใหม่
+                        เพิ่มห้อง/จุดบริการใหม่
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="employeeForm">
                         <input type="hidden" id="employeeId" name="id">
-                        
+
                         <div class="mb-3">
-                            <label for="employeeDepartment" class="form-label">หน่วยงาน <span class="text-danger">*</span></label>
-                            <select class="form-select select2-modal" id="employeeDepartment" name="department" required data-placeholder="เลือกหรือพิมพ์หน่วยงาน...">
-                                <option value=""></option>
-                            </select>
+                            <label for="room_name" class="form-label">ชื่อห้อง/จุดบริการ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="room_name" name="room_name" required>
                         </div>
 
                         <div class="mb-3">
@@ -256,20 +267,23 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                             <input type="text" class="form-control" id="employeePhone" name="internal_phone" required>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="employeeDepartment" class="form-label">หน่วยงาน <span class="text-danger">*</span></label>
+                            <select class="form-select select2-modal" id="employeeDepartment" name="department" required data-placeholder="เลือกหรือพิมพ์หน่วยงาน...">
+                                <option value=""></option>
+                            </select>
+                        </div>
+
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="employeeBuilding" class="form-label">ตึก <span class="text-danger">*</span></label>
                                 <select class="form-select select2-modal" id="employeeBuilding" name="building" required data-placeholder="เลือกหรือพิมพ์ชื่อตึก...">
                                     <option value=""></option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="employeeFloor" class="form-label">ชั้น <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="employeeFloor" name="floor" required min="1" max="50">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="employeeRoom" class="form-label">หมายเลขห้อง</label>
-                                <input type="text" class="form-control" id="employeeRoom" name="room_number">
+                                <input type="text" class="form-control" id="employeeFloor" name="floor" required>
                             </div>
                         </div>
                     </form>
@@ -290,10 +304,10 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
@@ -309,19 +323,19 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
 
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    
+
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <script>
         $(document).ready(function() {
             let table;
             let isEditMode = false;
-            
+
             // Load filter options
             loadFilterOptions();
             loadSelectOptions();
-            
+
             // Initialize Select2 for admin filters
             $('.select2-admin-filter').select2({
                 theme: 'bootstrap-5',
@@ -336,19 +350,26 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             table = $('#employeesTable').DataTable({
                 processing: true,
                 serverSide: true,
+                searching: false,
                 ajax: {
                     url: '../api/admin-datatable.php',
                     type: 'POST',
                     data: function(d) {
+                        d.room_name = $('#adminRoomNameFilter').val();
                         d.building = $('#adminBuildingFilter').val();
                         d.department = $('#adminDepartmentFilter').val();
+                        d.floor = $('#adminFloorFilter').val();
                     }
                 },
-                columns: [
-                    {
-                        data: 'department',
+                columns: [{
+                        data: 'room_name',
                         render: function(data, type, row) {
                             return `<span class="badge bg-primary text-white fs-6">${data}</span>`;
+                        }
+                    },{
+                        data: 'department',
+                        render: function(data, type, row) {
+                            return `<span class="badge bg-light text-dark fs-6">${data}</span>`;
                         }
                     },
                     {
@@ -364,9 +385,9 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         data: null,
                         render: function(data, type, row) {
                             let location = `${row.building} ชั้น ${row.floor}`;
-                            if (row.room_number) {
-                                location += ` ห้อง ${row.room_number}`;
-                            }
+                            // if (row.room_name) {
+                            //     location += ` ห้อง ${row.room_name}`;
+                            // }
                             return `<div class="text-muted">
                                         <i class="fas fa-map-marker-alt me-2"></i>
                                         ${location}
@@ -394,13 +415,17 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json'
                 },
                 dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-                     '<"row"<"col-sm-12"tr>>' +
-                     '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                    '<"row"<"col-sm-12"tr>>' +
+                    '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
                 pageLength: 25,
-                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "ทั้งหมด"]],
-                order: [[0, 'asc']],
-                buttons: [
-                    {
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "ทั้งหมด"]
+                ],
+                order: [
+                    [0, 'asc']
+                ],
+                buttons: [{
                         extend: 'excel',
                         text: '<i class="fas fa-file-excel me-1"></i> Excel',
                         className: 'btn btn-success btn-sm',
@@ -432,7 +457,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
 
             // Custom search styling
             $('.dataTables_filter input').addClass('form-control').attr('placeholder', 'ค้นหา...');
-            
+
             // Custom length menu styling
             $('.dataTables_length select').addClass('form-select');
 
@@ -440,9 +465,14 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             $('.select2-admin-filter').on('change', function() {
                 table.ajax.reload();
             });
+            
+            $('.form-input-filter').on('keyup', function() {
+                table.ajax.reload();
+            });
 
             // Clear filters button
             $('#clearAdminFilters').on('click', function() {
+                $('.form-input-filter').val(null);
                 $('.select2-admin-filter').val(null).trigger('change');
                 table.ajax.reload();
             });
@@ -450,7 +480,10 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             // Add employee button
             $('#addEmployeeBtn').on('click', function() {
                 isEditMode = false;
-                $('#employeeModalLabel').html('<i class="fas fa-user-plus me-2"></i>เพิ่มพนักงานใหม่');
+
+                loadSelectOptions();
+
+                $('#employeeModalLabel').html('<i class="fas fa-user-plus me-2"></i>เพิ่มห้อง/จุดบริการใหม่');
                 $('#saveEmployeeBtn').html('<i class="fas fa-save me-1"></i>บันทึก');
                 $('#employeeForm')[0].reset();
                 $('#employeeId').val('');
@@ -464,7 +497,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                 isEditMode = true;
                 $('#employeeModalLabel').html('<i class="fas fa-user-edit me-2"></i>แก้ไขข้อมูลพนักงาน');
                 $('#saveEmployeeBtn').html('<i class="fas fa-save me-1"></i>บันทึกการแก้ไข');
-                
+
                 // Get employee data
                 $.post('manage.php', {
                     action: 'get',
@@ -475,12 +508,12 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         $('#employeeId').val(data.id);
                         $('#employeePhone').val(data.internal_phone);
                         $('#employeeFloor').val(data.floor);
-                        $('#employeeRoom').val(data.room_number);
-                        
+                        $('#employeeRoom').val(data.room_name);
+
                         // Set Select2 values
                         setSelect2Value('#employeeDepartment', data.department);
                         setSelect2Value('#employeeBuilding', data.building);
-                        
+
                         $('#employeeModal').modal('show');
                     } else {
                         Swal.fire({
@@ -496,7 +529,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             $(document).on('click', '.delete-btn', function() {
                 const id = $(this).data('id');
                 const name = $(this).data('name');
-                
+
                 Swal.fire({
                     title: 'ยืนยันการลบข้อมูล',
                     text: `คุณต้องการลบข้อมูลของ "${name}" หรือไม่?`,
@@ -539,7 +572,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                 if (validateForm()) {
                     const formData = $('#employeeForm').serialize();
                     const action = isEditMode ? 'edit' : 'add';
-                    
+
                     $.post('manage.php', formData + '&action=' + action, function(response) {
                         if (response.success) {
                             $('#employeeModal').modal('hide');
@@ -550,6 +583,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                                 timer: 2000,
                                 showConfirmButton: false
                             });
+                            loadFilterOptions();
                             table.ajax.reload();
                         } else {
                             Swal.fire({
@@ -573,7 +607,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                     placeholder: function() {
                         return $(this).data('placeholder');
                     },
-                    createTag: function (params) {
+                    createTag: function(params) {
                         var term = $.trim(params.term);
                         if (term === '') {
                             return null;
@@ -608,21 +642,24 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         });
                     }
                 });
+                
+                // Load Floor
+                $.get('../api/filter-options.php?type=floors', function(data) {
+                    if (data.success) {
+                        $('#adminFloorFilter').empty().append('<option value="">ทั้งหมด</option>');
+                        data.data.forEach(function(item) {
+                            $('#adminFloorFilter').append(`<option value="${item.floor}">${item.floor}</option>`);
+                        });
+                    }
+                });
             }
 
             // Load select options for modal
             function loadSelectOptions() {
-                // Load positions
-                $.get('../api/filter-options.php?type=positions', function(data) {
-                    if (data.success) {
-                        data.data.forEach(function(item) {
-                            $('#employeePosition').append(`<option value="${item.position}">${item.position}</option>`);
-                        });
-                    }
-                });
 
                 // Load departments
                 $.get('../api/filter-options.php?type=departments', function(data) {
+                    $('#employeeDepartment').empty().append('<option value="">เลือกหรือพิมพ์หน่วยงาน...</option>');
                     if (data.success) {
                         data.data.forEach(function(item) {
                             $('#employeeDepartment').append(`<option value="${item.department}">${item.department}</option>`);
@@ -632,6 +669,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
 
                 // Load buildings
                 $.get('../api/filter-options.php?type=buildings', function(data) {
+                    $('#employeeBuilding').empty().append('<option value="">เลือกหรือพิมพ์ชื่อตึก...</option>');
                     if (data.success) {
                         data.data.forEach(function(item) {
                             $('#employeeBuilding').append(`<option value="${item.building}">${item.building}</option>`);
@@ -651,10 +689,10 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             // Form validation
             function validateForm() {
                 let isValid = true;
-                
+
                 // Remove previous validation classes
                 $('.form-control, .form-select').removeClass('is-invalid');
-                
+
                 // Check required fields
                 $('#employeeForm [required]').each(function() {
                     if (!$(this).val().trim()) {
@@ -688,4 +726,5 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
         });
     </script>
 </body>
+
 </html>

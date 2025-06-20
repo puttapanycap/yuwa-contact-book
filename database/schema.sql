@@ -7,7 +7,7 @@ USE corporate_phonebook;
 
 -- ปรับปรุงโครงสร้างตาราง employees ให้เหลือเฉพาะข้อมูลที่จำเป็น
 -- เอาออก: name, position, email
--- เหลือไว้: department, internal_phone, building, floor, room_number
+-- เหลือไว้: department, internal_phone, building, floor, room_name
 
 DROP TABLE IF EXISTS employees;
 
@@ -16,8 +16,8 @@ CREATE TABLE employees (
     department VARCHAR(100) NOT NULL,
     internal_phone VARCHAR(20) NOT NULL UNIQUE,
     building VARCHAR(50) NOT NULL,
-    floor INT NOT NULL,
-    room_number VARCHAR(20) NULL,
+    floor VARCHAR(50) NOT NULL,
+    room_name VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -27,7 +27,7 @@ CREATE TABLE employees (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert sample data with simplified structure
-INSERT INTO employees (department, internal_phone, building, floor, room_number) VALUES
+INSERT INTO employees (department, internal_phone, building, floor, room_name) VALUES
 ('บริหาร', '1001', 'อาคาร A', 5, '501'),
 ('ทรัพยากรบุคคล', '1002', 'อาคาร A', 4, '401'),
 ('เทคโนโลยีสารสนเทศ', '2001', 'อาคาร B', 3, '301'),

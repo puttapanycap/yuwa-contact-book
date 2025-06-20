@@ -8,9 +8,10 @@ try {
     $draw = intval($_POST['draw']);
     $start = intval($_POST['start']);
     $length = intval($_POST['length']);
-    $searchValue = $_POST['search']['value'];
+    // $searchValue = $_POST['search']['value'];
     
     // Filter parameters
+    $room_name = $_POST['room_name'] ?? '';
     $building = $_POST['building'] ?? '';
     $floor = $_POST['floor'] ?? '';
     $department = $_POST['department'] ?? '';
@@ -36,10 +37,10 @@ try {
     }
     
     // Apply search
-    if (!empty($searchValue)) {
-        $baseQuery .= " AND (department LIKE ? OR internal_phone LIKE ? OR building LIKE ?)";
-        $searchParam = "%{$searchValue}%";
-        $params = array_merge($params, [$searchParam, $searchParam, $searchParam]);
+    if (!empty($room_name)) {
+        $baseQuery .= " AND (room_name LIKE ?)";
+        $searchParam = "%{$room_name}%";
+        $params = array_merge($params, [$searchParam]);
     }
     
     // Get total records
@@ -55,7 +56,7 @@ try {
     $orderColumn = $_POST['order'][0]['column'] ?? 0;
     $orderDir = $_POST['order'][0]['dir'] ?? 'asc';
     
-    $columns = ['department', 'internal_phone', 'building'];
+    $columns = ['room_name', 'department', 'internal_phone', 'building'];
     $orderBy = $columns[$orderColumn] ?? 'name';
     
     $dataQuery = "SELECT * " . $baseQuery . " ORDER BY {$orderBy} {$orderDir}";
@@ -78,7 +79,7 @@ try {
             'internal_phone' => $row['internal_phone'],
             'building' => $row['building'],
             'floor' => $row['floor'],
-            'room_number' => $row['room_number'] ?: ''
+            'room_name' => $row['room_name'] ?: ''
         ];
     }
     

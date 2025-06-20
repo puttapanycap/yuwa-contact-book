@@ -45,7 +45,7 @@ if ($format === 'csv') {
         'เบอร์โทรภายใน',
         'ตึก',
         'ชั้น',
-        'หมายเลขห้อง',
+        'ชื่อห้อง/จุดบริการ',
         'วันที่สร้าง'
     ]);
     
@@ -56,7 +56,7 @@ if ($format === 'csv') {
             $employee['internal_phone'],
             $employee['building'],
             $employee['floor'],
-            $employee['room_number'],
+            $employee['room_name'],
             $employee['created_at']
         ]);
     }
@@ -207,8 +207,8 @@ if ($format === 'csv') {
                                                     <td><?= htmlspecialchars($employee['internal_phone']) ?></td>
                                                     <td>
                                                         <?= htmlspecialchars($employee['building']) ?> ชั้น <?= $employee['floor'] ?>
-                                                        <?php if ($employee['room_number']): ?>
-                                                            ห้อง <?= htmlspecialchars($employee['room_number']) ?>
+                                                        <?php if ($employee['room_name']): ?>
+                                                            ห้อง <?= htmlspecialchars($employee['room_name']) ?>
                                                         <?php endif; ?>
                                                     </td>
                                                 </tr>
@@ -264,8 +264,8 @@ if ($format === 'csv') {
                                         <td><strong><?= htmlspecialchars($employee['internal_phone']) ?></strong></td>
                                         <td>
                                             <?= htmlspecialchars($employee['building']) ?> ชั้น <?= $employee['floor'] ?>
-                                            <?php if ($employee['room_number']): ?>
-                                                ห้อง <?= htmlspecialchars($employee['room_number']) ?>
+                                            <?php if ($employee['room_name']): ?>
+                                                ห้อง <?= htmlspecialchars($employee['room_name']) ?>
                                             <?php endif; ?>
                                         </td>
                                     </tr>

@@ -49,51 +49,51 @@
 ### วิธีที่ 1: ใช้ Installation Script (แนะนำ)
 
 #### สำหรับ Windows:
-\`\`\`batch
+```batch
 install.bat
-\`\`\`
+```
 
 #### สำหรับ Linux/macOS:
-\`\`\`bash
+```bash
 chmod +x install.sh
 ./install.sh
-\`\`\`
+```
 
 ### วิธีที่ 2: ติดตั้งด้วยตนเอง
 
 1. **Clone หรือดาวน์โหลดโปรเจค**
-   \`\`\`bash
+   ```bash
    git clone [repository-url]
    cd corporate-phonebook
-   \`\`\`
+   ```
 
 2. **สร้างไฟล์ Environment**
-   \`\`\`bash
+   ```bash
    cp .env-example .env
-   \`\`\`
+   ```
 
 3. **แก้ไขการตั้งค่าฐานข้อมูลในไฟล์ .env**
-   \`\`\`env
+   ```env
    DB_HOST=localhost
    DB_NAME=corporate_phonebook
    DB_USER=your_username
    DB_PASS=your_password
-   \`\`\`
+   ```
 
 4. **สร้างฐานข้อมูล**
-   \`\`\`bash
+   ```bash
    mysql -u username -p database_name < database/schema.sql
-   \`\`\`
+   ```
 
 5. **ตั้งค่า Web Server**
    
    **PHP Built-in Server (Development):**
-   \`\`\`bash
+   ```bash
    php -S localhost:8000
-   \`\`\`
+   ```
    
    **Apache Virtual Host:**
-   \`\`\`apache
+   ```apache
    <VirtualHost *:80>
        DocumentRoot /path/to/corporate-phonebook
        ServerName phonebook.local
@@ -102,15 +102,15 @@ chmod +x install.sh
            Require all granted
        </Directory>
    </VirtualHost>
-   \`\`\`
+   ```
 
 ## โครงสร้างไฟล์
 
-\`\`\`
+```
 corporate-phonebook/
 ├── admin/                  # หน้าจัดการระบบ
 │   ├── index.php          # Dashboard
-│   ├── add.php            # เพิ่มพนักงาน
+│   ├── add.php            # เพิ่มห้อง/จุดบริการ
 │   ├── edit.php           # แก้ไขข้อมูล
 │   └── manage.php         # จัดการข้อมูล
 ├── api/                   # API Endpoints
@@ -131,7 +131,7 @@ corporate-phonebook/
 ├── install.bat            # Windows Installation Script
 ├── install.sh             # Linux/macOS Installation Script
 └── README.md              # คู่มือการใช้งาน
-\`\`\`
+```
 
 ## การใช้งาน
 
@@ -144,7 +144,7 @@ corporate-phonebook/
 ### หน้าจัดการระบบ (admin/)
 1. เข้าใช้งานผ่าน URL/admin/
 2. ดู Dashboard และสถิติต่างๆ
-3. เพิ่มพนักงานใหม่ผ่านหน้า "เพิ่มพนักงานใหม่"
+3. เพิ่มห้อง/จุดบริการใหม่ผ่านหน้า "เพิ่มห้อง/จุดบริการใหม่"
 4. จัดการข้อมูลพนักงานที่มีอยู่
 5. ส่งออกข้อมูลเป็นไฟล์
 
@@ -160,7 +160,7 @@ corporate-phonebook/
 - `department` (string): ชื่อหน่วยงาน
 
 **Response:**
-\`\`\`json
+```json
 {
   "success": true,
   "data": [
@@ -175,12 +175,12 @@ corporate-phonebook/
       "email": "somchai@company.com",
       "building": "อาคาร A",
       "floor": 5,
-      "room_number": "501"
+      "room_name": "501"
     }
   ],
   "count": 1
 }
-\`\`\`
+```
 
 ## การปรับแต่งและขยายระบบ
 

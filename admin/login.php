@@ -225,7 +225,7 @@ if (isset($_GET['logged_out'])) {
             <div class="text-center">
                 <small class="text-muted">
                     <i class="fas fa-info-circle me-1"></i>
-                    ข้อมูลทดสอบ: admin / admin123
+                    จัดทำโดย : งานเทคโนโลยีสารสนเทศ
                 </small>
             </div>
         </div>

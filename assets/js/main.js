@@ -16,10 +16,12 @@ $(document).ready(() => {
   const table = $("#employeesTable").DataTable({
     processing: true,
     serverSide: true,
+    searching: false,
     ajax: {
       url: "api/datatable.php",
       type: "POST",
       data: (d) => {
+        d.room_name = $("#roomNameFilter").val()
         d.building = $("#buildingFilter").val()
         d.floor = $("#floorFilter").val()
         d.department = $("#departmentFilter").val()
@@ -27,8 +29,12 @@ $(document).ready(() => {
     },
     columns: [
       {
-        data: "department",
+        data: "room_name",
         render: (data, type, row) => `<span class="badge bg-primary text-white fs-6">${data}</span>`,
+      },
+      {
+        data: "department",
+        render: (data, type, row) => `<span class="badge bg-light text-dark fs-6">${data}</span>`,
       },
       {
         data: "internal_phone",
@@ -41,9 +47,9 @@ $(document).ready(() => {
         data: null,
         render: (data, type, row) => {
           let location = `${row.building} ชั้น ${row.floor}`
-          if (row.room_number) {
-            location += ` ห้อง ${row.room_number}`
-          }
+          // if (row.room_name) {
+          //   location += ` ห้อง ${row.room_name}`
+          // }
           return `<div class="text-muted">
                     <i class="fas fa-map-marker-alt me-2"></i>
                     ${location}
@@ -104,12 +110,17 @@ $(document).ready(() => {
   })
 
   // Filter change events
+  $(".input-filter").on("keyup", () => {
+    table.ajax.reload()
+  })
+
   $(".select2-filter").on("change", () => {
     table.ajax.reload()
   })
 
   // Clear filters button
   $("#clearFilters").on("click", () => {
+    $("#roomNameFilter").val(null)
     $(".select2-filter").val(null).trigger("change")
     table.ajax.reload()
   })

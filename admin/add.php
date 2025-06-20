@@ -29,7 +29,7 @@ $messageType = '';
 if ($_POST) {
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO employees (name, position, department, internal_phone, email, building, floor, room_number) 
+            INSERT INTO employees (name, position, department, internal_phone, email, building, floor, room_name) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
@@ -41,7 +41,7 @@ if ($_POST) {
             $_POST['email'],
             $_POST['building'],
             $_POST['floor'],
-            $_POST['room_number']
+            $_POST['room_name']
         ]);
         
         $message = 'เพิ่มข้อมูลพนักงานเรียบร้อยแล้ว';
@@ -57,7 +57,7 @@ if ($_POST) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เพิ่มพนักงานใหม่ - สมุดโทรศัพท์ภายในองค์กร</title>
+    <title>เพิ่มห้อง/จุดบริการใหม่ - สมุดโทรศัพท์ภายในองค์กร</title>
     
     <!-- Google Fonts - Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -112,7 +112,7 @@ if ($_POST) {
                     <div class="card-header bg-primary text-white">
                         <h4 class="card-title mb-0">
                             <i class="fas fa-user-plus me-2"></i>
-                            เพิ่มพนักงานใหม่
+                            เพิ่มห้อง/จุดบริการใหม่
                         </h4>
                     </div>
                     <div class="card-body">
@@ -124,6 +124,11 @@ if ($_POST) {
                         <?php endif; ?>
 
                         <form method="POST" id="addEmployeeForm">
+                            <div class="mb-3">
+                                <label for="room_name" class="form-label">ชื่อห้อง/จุดบริการ <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="room_name" name="room_name"required>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="name" class="form-label">ชื่อ-นามสกุล <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="name" name="name" required>
@@ -156,19 +161,15 @@ if ($_POST) {
                             </div>
 
                             <div class="row">
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="building" class="form-label">ตึก <span class="text-danger">*</span></label>
                                     <select class="form-select select2-input" id="building" name="building" required data-placeholder="เลือกหรือพิมพ์ชื่อตึก...">
                                         <option value=""></option>
                                     </select>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="floor" class="form-label">ชั้น <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="floor" name="floor" required min="1" max="50">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="room_number" class="form-label">หมายเลขห้อง</label>
-                                    <input type="text" class="form-control" id="room_number" name="room_number">
                                 </div>
                             </div>
 

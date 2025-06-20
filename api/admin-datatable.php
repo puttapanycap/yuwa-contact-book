@@ -8,61 +8,73 @@ try {
     $draw = intval($_POST['draw']);
     $start = intval($_POST['start']);
     $length = intval($_POST['length']);
-    $searchValue = $_POST['search']['value'];
-    
+    // $searchValue = $_POST['search']['value'];
+
     // Filter parameters
+    $room_name = $_POST['room_name'] ?? '';
     $building = $_POST['building'] ?? '';
     $department = $_POST['department'] ?? '';
-    
+    $floor = $_POST['floor'] ?? '';
+
     // Base query
     $baseQuery = "FROM employees WHERE 1=1";
     $params = [];
-    
+
     // Apply filters
+    // if (!empty($room_name)) {
+    //     $baseQuery .= " AND room_name = ?";
+    //     $params[] = $room_name;
+    // }
+
     if (!empty($building)) {
         $baseQuery .= " AND building = ?";
         $params[] = $building;
     }
-    
+
     if (!empty($department)) {
         $baseQuery .= " AND department = ?";
         $params[] = $department;
     }
-    
-    // Apply search
-    if (!empty($searchValue)) {
-        $baseQuery .= " AND (department LIKE ? OR internal_phone LIKE ? OR building LIKE ?)";
-        $searchParam = "%{$searchValue}%";
-        $params = array_merge($params, [$searchParam, $searchParam, $searchParam]);
+
+    if (!empty($floor)) {
+        $baseQuery .= " AND floor = ?";
+        $params[] = $floor;
     }
-    
+
+    // Apply search
+    if (!empty($room_name)) {
+        $baseQuery .= " AND (room_name LIKE ? )";
+        $searchParam = "%{$room_name}%";
+        $params = array_merge($params, [$searchParam]);
+    }
+
     // Get total records
     $totalQuery = "SELECT COUNT(*) " . $baseQuery;
     $stmt = $pdo->prepare($totalQuery);
     $stmt->execute($params);
     $totalRecords = $stmt->fetchColumn();
-    
+
     // Get filtered records
     $filteredRecords = $totalRecords;
-    
+
     // Apply ordering
     $orderColumn = $_POST['order'][0]['column'] ?? 0;
     $orderDir = $_POST['order'][0]['dir'] ?? 'asc';
-    
-    $columns = ['department', 'internal_phone', 'building'];
+
+    $columns = ['room_name', 'department', 'internal_phone', 'building'];
     $orderBy = $columns[$orderColumn] ?? 'department';
-    
+
     $dataQuery = "SELECT * " . $baseQuery . " ORDER BY {$orderBy} {$orderDir}";
-    
+
     // Apply pagination
     if ($length != -1) {
         $dataQuery .= " LIMIT {$length} OFFSET {$start}";
     }
-    
+
     $stmt = $pdo->prepare($dataQuery);
     $stmt->execute($params);
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     // Format data for DataTables
     $formattedData = [];
     foreach ($data as $row) {
@@ -72,17 +84,16 @@ try {
             'internal_phone' => $row['internal_phone'],
             'building' => $row['building'],
             'floor' => $row['floor'],
-            'room_number' => $row['room_number'] ?: ''
+            'room_name' => $row['room_name'] ?: ''
         ];
     }
-    
+
     echo json_encode([
         'draw' => $draw,
         'recordsTotal' => $totalRecords,
         'recordsFiltered' => $filteredRecords,
         'data' => $formattedData
     ]);
-    
 } catch (Exception $e) {
     echo json_encode([
         'draw' => 0,
@@ -92,4 +103,3 @@ try {
         'error' => $e->getMessage()
     ]);
 }
-?>

@@ -58,6 +58,10 @@
                         
                         <div class="row g-3">
                             <div class="col-md-3">
+                                <label class="form-label">ชื่อห้อง/จุดบริการ</label>
+                                <input type="text" class="form-control input-filter" id="roomNameFilter" placeholder="กรอกชื่อห้อง/จุดบริการ...">
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label">ตึก</label>
                                 <select class="form-select select2-filter" id="buildingFilter" data-placeholder="เลือกตึก...">
                                     <option value="">ทั้งหมด</option>
@@ -75,7 +79,7 @@
                                     <option value="">ทั้งหมด</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-auto">
                                 <label class="form-label">การดำเนินการ</label>
                                 <div class="d-grid">
                                     <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFilters">
@@ -100,11 +104,12 @@
                 </h4>
                 <div id="tableButtons"></div>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body">
                 <div class="table-responsive">
                     <table id="employeesTable" class="table table-hover mb-0" style="width:100%">
                         <thead class="table-light">
                             <tr>
+                                <th>ชื่อห้อง/จุดบริการ</th>
                                 <th>หน่วยงาน</th>
                                 <th>เบอร์โทรภายใน</th>
                                 <th>ที่ตั้ง</th>

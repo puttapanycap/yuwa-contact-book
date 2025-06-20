@@ -57,7 +57,7 @@ if ($_POST && $employee) {
             UPDATE employees SET 
             name = ?, position = ?, department = ?, 
             internal_phone = ?, email = ?, 
-            building = ?, floor = ?, room_number = ?, updated_at = NOW()
+            building = ?, floor = ?, room_name = ?, updated_at = NOW()
             WHERE id = ?
         ");
         
@@ -69,7 +69,7 @@ if ($_POST && $employee) {
             $_POST['email'],
             $_POST['building'],
             $_POST['floor'],
-            $_POST['room_number'],
+            $_POST['room_name'],
             $employeeId
         ]);
         
@@ -216,9 +216,9 @@ if ($_POST && $employee) {
                                                value="<?= htmlspecialchars($employee['floor']) ?>" required min="1" max="50">
                                     </div>
                                     <div class="col-md-4 mb-3">
-                                        <label for="room_number" class="form-label">หมายเลขห้อง</label>
-                                        <input type="text" class="form-control" id="room_number" name="room_number" 
-                                               value="<?= htmlspecialchars($employee['room_number']) ?>">
+                                        <label for="room_name" class="form-label">ชื่อห้อง/จุดบริการ</label>
+                                        <input type="text" class="form-control" id="room_name" name="room_name" 
+                                               value="<?= htmlspecialchars($employee['room_name']) ?>">
                                     </div>
                                 </div>
 

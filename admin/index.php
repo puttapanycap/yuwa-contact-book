@@ -337,8 +337,8 @@ $recentEmployees = $pdo->query("
                                                         <p class="card-text text-muted mb-0">
                                                             <i class="fas fa-map-marker-alt me-2"></i>
                                                             <?= htmlspecialchars($employee['building']) ?> ชั้น <?= $employee['floor'] ?>
-                                                            <?php if ($employee['room_number']): ?>
-                                                                ห้อง <?= htmlspecialchars($employee['room_number']) ?>
+                                                            <?php if ($employee['room_name']): ?>
+                                                                ห้อง <?= htmlspecialchars($employee['room_name']) ?>
                                                             <?php endif; ?>
                                                         </p>
                                                     </div>
