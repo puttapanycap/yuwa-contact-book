@@ -259,7 +259,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
 
                         <div class="mb-3">
                             <label for="room_name" class="form-label">ชื่อห้อง/จุดบริการ <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="room_name" name="room_name" required>
+                            <input type="text" class="form-control" id="employeeRoom" name="room_name" required>
                         </div>
 
                         <div class="mb-3">
@@ -511,8 +511,13 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         $('#employeeRoom').val(data.room_name);
 
                         // Set Select2 values
-                        setSelect2Value('#employeeDepartment', data.department);
-                        setSelect2Value('#employeeBuilding', data.building);
+                        // setSelect2Value('#employeeDepartment', data.department);
+                        // setSelect2Value('#employeeBuilding', data.building);
+
+                        loadSelectOptions('edit', {
+                            department: data.department,
+                            building: data.building
+                        });
 
                         $('#employeeModal').modal('show');
                     } else {
@@ -655,7 +660,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             }
 
             // Load select options for modal
-            function loadSelectOptions() {
+            function loadSelectOptions(action = 'add', ids = {}) {
 
                 // Load departments
                 $.get('../api/filter-options.php?type=departments', function(data) {
@@ -664,6 +669,10 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         data.data.forEach(function(item) {
                             $('#employeeDepartment').append(`<option value="${item.department}">${item.department}</option>`);
                         });
+                        if (action === 'edit') {
+                            // setSelect2Value('#employeeDepartment', ids.department);
+                            $('#employeeDepartment').val(ids.department).trigger('change');
+                        }
                     }
                 });
 
@@ -674,17 +683,21 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         data.data.forEach(function(item) {
                             $('#employeeBuilding').append(`<option value="${item.building}">${item.building}</option>`);
                         });
+                        if (action === 'edit') {
+                            // setSelect2Value('#employeeBuilding', ids.building);
+                            $('#employeeBuilding').val(ids.building).trigger('change');
+                        }
                     }
                 });
             }
 
             // Set Select2 value
-            function setSelect2Value(selector, value) {
-                if (value) {
-                    const option = new Option(value, value, true, true);
-                    $(selector).append(option).trigger('change');
-                }
-            }
+            // function setSelect2Value(selector, value) {
+            //     if (value) {
+            //         const option = new Option(value, value, true, true);
+            //         $(selector).append(option).trigger('change');
+            //     }
+            // }
 
             // Form validation
             function validateForm() {
