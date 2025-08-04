@@ -102,31 +102,14 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>จัดการข้อมูลพนักงาน - สมุดโทรศัพท์ภายในองค์กร</title>
 
-    <!-- Google Fonts - Sarabun -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- DataTables CSS -->
-    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
-
-    <!-- Select2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-
-    <!-- SweetAlert2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
     <!-- Custom CSS -->
-    <link href="../assets/css/style.css" rel="stylesheet">
+    <link href="../assets/css/style.bundle.css" rel="stylesheet">
+    <link href="../assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="../assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
+
+    <link href="../assets/css/fonts.css" rel="stylesheet">
+    <link href="../assets/css/fontawesome.css" rel="stylesheet">
+    <link href="../assets/css/custom.css" rel="stylesheet">
 </head>
 
 <body>
@@ -138,6 +121,11 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                 จัดการระบบ
             </a>
             <div class="navbar-nav ms-auto">
+                <button type="button" class="btn btn-sm btn-success nav-link" id="addEmployeeBtn">
+                    <i class="fas fa-plus me-1"></i>
+                    เพิ่มห้อง/จุดบริการ
+                </button>
+                
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle me-1"></i>
@@ -149,10 +137,6 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                             </a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-success nav-link" id="addEmployeeBtn">
-                    <i class="fas fa-plus me-1"></i>
-                    เพิ่มห้อง/จุดบริการ
-                </button>
                 <a class="nav-link" href="../index.php">
                     <i class="fas fa-home me-1"></i>
                     กลับหน้าแรก
@@ -198,7 +182,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                             <div class="col-auto">
                                 <label class="form-label">การดำเนินการ</label>
                                 <div class="d-grid">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearAdminFilters">
+                                    <button type="button" class="btn btn-outline btn-outline-secondary btn-sm" id="clearAdminFilters">
                                         <i class="fas fa-times me-1"></i>
                                         ล้างตัวกรอง
                                     </button>
@@ -213,7 +197,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
         <div class="card shadow">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <div>
-                    <h4 class="card-title mb-0">
+                    <h4 class="card-title text-inverse-primary mb-0">
                         <i class="fas fa-users me-2"></i>
                         จัดการข้อมูลพนักงาน
                         <span class="badge bg-light text-dark ms-2"><?= number_format($totalEmployees) ?> คน</span>
@@ -223,7 +207,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="employeesTable" class="table table-striped table-hover" style="width:100%">
+                    <table id="employeesTable" class="table table-striped table-hover gs-4 gy-4 gx-4" style="width:100%">
                         <thead>
                             <tr>
                                 <th>ชื่อห้อง/จุดบริการ</th>
@@ -303,13 +287,13 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
     </div>
 
     <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
 
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 
     <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <!-- <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
@@ -319,13 +303,17 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script> -->
 
     <!-- Select2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> -->
 
     <!-- SweetAlert2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
+
+    <script src="../assets/js/scripts.bundle.js"></script>
+    <script src="../assets/plugins/global/plugins.bundle.js"></script>
+    <script src="../assets/plugins/custom/datatables/datatables.bundle.js"></script>
 
     <script>
         $(document).ready(function() {
@@ -338,7 +326,6 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
 
             // Initialize Select2 for admin filters
             $('.select2-admin-filter').select2({
-                theme: 'bootstrap-5',
                 width: '100%',
                 allowClear: true,
                 placeholder: function() {
@@ -366,7 +353,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         render: function(data, type, row) {
                             return `<span class="badge bg-primary text-white fs-6">${data}</span>`;
                         }
-                    },{
+                    }, {
                         data: 'department',
                         render: function(data, type, row) {
                             return `<span class="badge bg-light text-dark fs-6">${data}</span>`;
@@ -399,10 +386,10 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         data: null,
                         render: function(data, type, row) {
                             return `<div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-primary edit-btn" data-id="${row.id}" title="แก้ไข">
+                                        <button type="button" class="btn btn-outline btn-outline-primary edit-btn" data-id="${row.id}" title="แก้ไข">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-outline-danger delete-btn" data-id="${row.id}" data-name="${row.department}" title="ลบ">
+                                        <button type="button" class="btn btn-outline btn-outline-danger delete-btn" data-id="${row.id}" data-name="${row.department}" title="ลบ">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>`;
@@ -412,11 +399,9 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                 ],
                 responsive: true,
                 language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json'
+                    url: "../assets/plugins/custom/datatables/i18n/th.json",
+                    processing: `<img class="w-50px me-2" src="../assets/imgages/animations/loading_ellipsis_transparent.svg"> โหลดข้อมูล...`
                 },
-                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-                    '<"row"<"col-sm-12"tr>>' +
-                    '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
                 pageLength: 25,
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
@@ -465,7 +450,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             $('.select2-admin-filter').on('change', function() {
                 table.ajax.reload();
             });
-            
+
             $('.form-input-filter').on('keyup', function() {
                 table.ajax.reload();
             });
@@ -604,7 +589,6 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
             // Initialize Select2 for modal
             $('#employeeModal').on('shown.bs.modal', function() {
                 $('.select2-modal').select2({
-                    theme: 'bootstrap-5',
                     width: '100%',
                     tags: true,
                     tokenSeparators: [','],
@@ -647,7 +631,7 @@ $totalEmployees = $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn();
                         });
                     }
                 });
-                
+
                 // Load Floor
                 $.get('../api/filter-options.php?type=floors', function(data) {
                     if (data.success) {

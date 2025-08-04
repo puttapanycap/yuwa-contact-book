@@ -1,0 +1,17 @@
+/* Custom Styles for Corporate Phonebook */
+
+/* * {
+  font-family: "Sarabun", sans-serif;
+} */
+
+*:not(i) {
+    font-family: 'LINESeedSansTH', sans-serif !important;
+}
+/* .card .card-header {
+    min-height: 15px;
+} */
+
+body {
+  background-color: #f8f9fa;
+}
+

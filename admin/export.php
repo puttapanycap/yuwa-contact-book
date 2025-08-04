@@ -74,19 +74,14 @@ if ($format === 'csv') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ส่งออกข้อมูล - สมุดโทรศัพท์ภายในองค์กร</title>
     
-    <!-- Google Fonts - Sarabun -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
     <!-- Custom CSS -->
-    <link href="../assets/css/style.css" rel="stylesheet">
+    <link href="../assets/css/style.bundle.css" rel="stylesheet">
+    <link href="../assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="../assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
+
+    <link href="../assets/css/fonts.css" rel="stylesheet">
+    <link href="../assets/css/fontawesome.css" rel="stylesheet">
+    <link href="../assets/css/custom.css" rel="stylesheet">
     
     <style>
         .export-card {
@@ -136,7 +131,7 @@ if ($format === 'csv') {
             <div class="col-lg-8">
                 <div class="card shadow">
                     <div class="card-header bg-info text-white">
-                        <h4 class="card-title mb-0">
+                        <h4 class="card-title text-inverse-info mb-0">
                             <i class="fas fa-download me-2"></i>
                             ส่งออกข้อมูลสมุดโทรศัพท์
                         </h4>
@@ -285,8 +280,9 @@ if ($format === 'csv') {
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/scripts.bundle.js"></script>
+    <script src="../assets/plugins/global/plugins.bundle.js"></script>
+    <script src="../assets/plugins/custom/datatables/datatables.bundle.js"></script>
 
     <script>
         function exportData(format) {

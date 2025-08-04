@@ -40,21 +40,13 @@ if (isset($_GET['logged_out'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เข้าสู่ระบบ - สมุดโทรศัพท์ภายในองค์กร</title>
     
-    <!-- Google Fonts - Sarabun -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="../assets/css/style.bundle.css" rel="stylesheet">
+    <link href="../assets/css/fonts.css" rel="stylesheet">
+    <link href="../assets/css/fontawesome.css" rel="stylesheet">
+    <link href="../assets/css/custom.css" rel="stylesheet">
     
     <style>
-        * {
-            font-family: "Sarabun", sans-serif;
-        }
         
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -231,8 +223,7 @@ if (isset($_GET['logged_out'])) {
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/scripts.bundle.js"></script>
     
     <script>
         // Toggle password visibility
